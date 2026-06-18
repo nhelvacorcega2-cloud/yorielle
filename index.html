@@ -4,7 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>kagom.store 💗</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ── THEMES ─────────────────────────────────────────────── */
@@ -82,7 +81,7 @@ main{flex:1;max-width:860px;width:100%;margin:0 auto;padding:36px 20px 60px}
 .btn-signin img{width:20px;height:20px}
 
 /* ── CARD ── */
-#appWall{display:none}
+#appWall{display:block}
 .card{
   background:rgba(255,240,246,0.88);border:1px solid var(--border);
   border-radius:20px;padding:26px 28px 22px;margin-bottom:18px;
@@ -253,33 +252,13 @@ footer{
 <!-- HEADER -->
 <header>
   <div class="brand">🎀 kagom.store</div>
-  <div class="header-right">
-
-    <!-- Auth button -->
-    <button class="btn-auth" id="authBtn" onclick="handleAuth()">
-      <img class="avatar" id="userAvatar" src="" alt=""/>
-      <span id="authLabel">Sign in with Google</span>
-    </button>
-    </div>
-
-  </div>
+  <div class="header-right"></div>
 </header>
 
 <!-- MAIN -->
 <main>
 
-  <!-- AUTH WALL -->
-  <div id="authWall">
-    <div class="auth-icon">🎀</div>
-    <h2>kagom.store Mail</h2>
-    <p>Sign in with the Gmail account that receives your <strong>@kagom.store</strong> forwarded emails to view your inbox.</p>
-    <button class="btn-signin" onclick="handleAuth()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
-      Sign in with Google
-    </button>
-  </div>
-
-  <!-- APP (shown after sign-in) -->
+  <!-- APP -->
   <div id="appWall">
     <div class="card">
       <label for="emailInput">Enter Email Address:</label>
@@ -339,99 +318,14 @@ footer{
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-const CLIENT_ID = '971013171894-4bev9sq65r5dqa0o4d5j9dkq8ppeiok6.apps.googleusercontent.com';
-const DOMAIN    = 'kagom.store';
-const SCOPES    = 'https://www.googleapis.com/auth/gmail.readonly';
+const DOMAIN = 'kagom.store';
+const API    = '/api/inbox';   // serverless backend that reads the mailbox
 
 // ── STATE ─────────────────────────────────────────────────────
-let accessToken    = '';
-let userEmail      = '';
 let currentAddress = '';
 let currentEmails  = [];
 let currentOtp     = '';
 let pollTimer      = null;
-
-// ── GOOGLE OAUTH (no library — pure fetch) ────────────────────
-function handleAuth(){
-  if (accessToken){ signOut(); return; }
-  signIn();
-}
-
-function signIn(){
-  const params = new URLSearchParams({
-    client_id:     CLIENT_ID,
-    redirect_uri:  location.origin + location.pathname,
-    response_type: 'token',
-    scope:         SCOPES,
-    prompt:        'select_account',
-  });
-  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
-}
-
-function signOut(){
-  accessToken = ''; userEmail = '';
-  sessionStorage.removeItem('km_token');
-  sessionStorage.removeItem('km_email');
-  showAuthWall();
-  toast('Signed out');
-}
-
-// Parse token from URL hash after redirect
-function parseToken(){
-  const hash   = location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  const token  = params.get('access_token');
-  if (token){
-    accessToken = token;
-    sessionStorage.setItem('km_token', token);
-    history.replaceState(null,'',location.pathname);
-    fetchUserInfo();
-    return true;
-  }
-  return false;
-}
-
-function restoreSession(){
-  const t = sessionStorage.getItem('km_token');
-  const e = sessionStorage.getItem('km_email');
-  if (t){ accessToken = t; userEmail = e || ''; showApp(); return true; }
-  return false;
-}
-
-function fetchUserInfo(){
-  fetch('https://www.googleapis.com/oauth2/v2/userinfo',{
-    headers:{'Authorization':'Bearer ' + accessToken}
-  })
-  .then(r => r.json())
-  .then(info => {
-    userEmail = info.email || '';
-    sessionStorage.setItem('km_email', userEmail);
-    if (info.picture){
-      const av = document.getElementById('userAvatar');
-      av.src = info.picture;
-      av.style.display = 'block';
-    }
-    document.getElementById('authLabel').textContent = userEmail || 'Sign out';
-    showApp();
-  })
-  .catch(() => showApp());
-}
-
-function showApp(){
-  document.getElementById('authWall').style.display = 'none';
-  document.getElementById('appWall').style.display  = 'block';
-  document.getElementById('authLabel').textContent  = userEmail || 'Sign out';
-  // Pre-fill with Gmail address so user knows which account forwarded
-  if (userEmail && !document.getElementById('emailInput').value){
-    // leave blank so user enters their kagom address
-  }
-}
-function showAuthWall(){
-  document.getElementById('authWall').style.display = 'flex';
-  document.getElementById('appWall').style.display  = 'none';
-  document.getElementById('authLabel').textContent  = 'Sign in with Google';
-  document.getElementById('userAvatar').style.display = 'none';
-}
 
 // ── EMAIL INPUT HELPERS ───────────────────────────────────────
 function getInputEmail(){
@@ -464,40 +358,30 @@ function getEmail(){
 function refresh(){ showLoading(); fetchEmails(); }
 
 function fetchEmails(){
-  if (!accessToken){ toast('Please sign in first'); return; }
-
-  // Search Gmail for emails delivered TO this kagom.store address
-  const query = encodeURIComponent('to:' + currentAddress);
-  fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=30`,{
-    headers:{'Authorization':'Bearer ' + accessToken}
-  })
-  .then(r => {
-    if (r.status === 401){ signOut(); toast('Session expired — please sign in again'); return null; }
-    return r.json();
-  })
-  .then(data => {
-    if (!data) return;
-    const messages = data.messages || [];
-    if (!messages.length){ renderEmails([]); return; }
-    // Fetch each message's details (parallel, up to 20)
-    const fetches = messages.slice(0,20).map(m =>
-      fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=full`,{
-        headers:{'Authorization':'Bearer ' + accessToken}
-      }).then(r => r.json())
-    );
-    return Promise.all(fetches);
-  })
-  .then(msgs => {
-    if (!msgs) return;
-    const emails = msgs.map(parseGmailMessage).filter(Boolean);
-    emails.sort((a,b) => b.date - a.date);
-    renderEmails(emails);
-  })
-  .catch(err => {
-    console.error(err);
-    renderEmails([]);
-    toast('Error loading emails — check console');
-  });
+  if (!currentAddress) return;
+  fetch(API + '?address=' + encodeURIComponent(currentAddress))
+    .then(r => r.json())
+    .then(data => {
+      if (data.error){ renderEmails([]); toast(data.error); return; }
+      const emails = (data.emails || []).map(e => ({
+        id:      e.id,
+        from:    e.from || '(unknown sender)',
+        to:      e.to   || currentAddress,
+        subject: e.subject || '(no subject)',
+        body:    e.body || '',
+        preview: (e.body || '').replace(/\s+/g,' ').slice(0,120),
+        date:    new Date(e.date),
+        unread:  !!e.unread,
+        otp:     detectOtp(e.body || ''),
+      }));
+      emails.sort((a,b) => b.date - a.date);
+      renderEmails(emails);
+    })
+    .catch(err => {
+      console.error(err);
+      renderEmails([]);
+      toast('Error loading emails — check console');
+    });
 }
 
 // ── PARSE GMAIL MESSAGE ───────────────────────────────────────
@@ -603,7 +487,6 @@ function renderEmails(emails){
   if (!emails.length){
     ph.style.display = 'flex';
     ph.innerHTML = '<div class="icon">🌸</div><div>No emails yet for <strong>' + currentAddress +
-      
       '</strong><br><small>Auto-refreshes every 20s</small></div>';
     list.innerHTML = '';
     return;
@@ -674,8 +557,6 @@ function toast(msg,dur=2800){
 
 // ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
-if (!parseToken()) restoreSession();
 </script>
 </body>
 </html>
-

@@ -1,0 +1,10 @@
+{
+  "name": "kagom-mail",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "imapflow": "^1.0.0",
+    "mailparser": "^3.0.0"
+  }
+}

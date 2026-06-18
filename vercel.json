@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/inbox.js": {
+      "maxDuration": 30
+    }
+  }
+}
