@@ -603,6 +603,7 @@ function renderEmails(emails){
   if (!emails.length){
     ph.style.display = 'flex';
     ph.innerHTML = '<div class="icon">🌸</div><div>No emails yet for <strong>' + currentAddress +
+      
       '</strong><br><small>Auto-refreshes every 20s</small></div>';
     list.innerHTML = '';
     return;
