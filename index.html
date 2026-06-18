@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kagom</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f9f9f7;
+    --fg: #111;
+    --accent: #2a2a2a;
+    --muted: #888;
+    --border: #e0e0dc;
+    --white: #fff;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(249,249,247,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 60px;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--fg); }
+
+  /* ── HERO ── */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 140px 40px 80px;
+    min-height: 100vh;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--fg);
+    max-width: 800px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .hero-sub {
+    margin-top: 28px;
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.7;
+  }
+
+  .hero-cta {
+    margin-top: 48px;
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--fg);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .hero-cta:hover {
+    background: #333;
+    transform: translateY(-1px);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── FEATURES STRIP ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feature {
+    padding: 48px 40px;
+    border-right: 1px solid var(--border);
+  }
+
+  .feature:last-child { border-right: none; }
+
+  .feature-num {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .feature h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .feature p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ── ABOUT SECTION ── */
+  .about {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .about-text {
+    padding: 80px 60px;
+    border-right: 1px solid var(--border);
+  }
+
+  .about-text .label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .about-text h2 {
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .about-text p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .about-visual {
+    background: #ebebea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+  }
+
+  .about-monogram {
+    font-size: 120px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.08);
+    letter-spacing: -0.05em;
+    user-select: none;
+  }
+
+  /* ── CONTACT ── */
+  .contact {
+    padding: 80px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .contact-left .label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .contact-left h2 {
+    font-size: clamp(24px, 3vw, 36px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+
+  .contact-email {
+    font-size: 15px;
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .contact-email:hover {
+    border-color: var(--fg);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  footer .logo-sm {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+
+  footer .footer-right {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 120px 24px 60px; }
+    .features { grid-template-columns: 1fr; }
+    .feature { border-right: none; border-bottom: 1px solid var(--border); }
+    .feature:last-child { border-bottom: none; }
+    .about { grid-template-columns: 1fr; }
+    .about-text { padding: 48px 24px; border-right: none; border-bottom: 1px solid var(--border); }
+    .about-visual { min-height: 180px; }
+    .contact { padding: 48px 24px; flex-direction: column; align-items: flex-start; }
+    footer { padding: 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Kagom</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">kagom.store</p>
+  <h1>Simple things,<br><em>done well.</em></h1>
+  <p class="hero-sub">A focused space built for clarity, quality, and the things that actually matter.</p>
+  <a href="#contact" class="hero-cta">Get in touch</a>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="feature">
+    <p class="feature-num">01</p>
+    <h3>Purposeful</h3>
+    <p>Every decision here is made with intention. No clutter, no noise — just what needs to be.</p>
+  </div>
+  <div class="feature">
+    <p class="feature-num">02</p>
+    <h3>Reliable</h3>
+    <p>You can count on consistency. The same standard, every time, without exception.</p>
+  </div>
+  <div class="feature">
+    <p class="feature-num">03</p>
+    <h3>Direct</h3>
+    <p>Straight to the point. No detours, no fluff — just clear, honest communication.</p>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-text">
+    <p class="label">About</p>
+    <h2>Built on a simple idea</h2>
+    <p>Kagom exists to do one thing well. Whether you're here for the first time or coming back, the experience stays the same — calm, clear, and consistent.</p>
+    <br />
+    <p style="color:#aaa; font-size:13px;">kagom.store</p>
+  </div>
+  <div class="about-visual">
+    <span class="about-monogram">K</span>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-left">
+    <p class="label">Contact</p>
+    <h2>Say hello.</h2>
+    <br />
+    <a href="mailto:hello@kagom.store" class="contact-email">hello@kagom.store</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo-sm">Kagom</span>
+  <span class="footer-right">&copy; 2026 kagom.store</span>
+</footer>
+
+</body>
+</html>
